@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exam - Advanced RAG with Vector Databases and Retrievers</title>
+  <style>
+    :root{
+      --bg:#0b1020;--card:#121a31;--card-2:#18233f;--text:#eef3ff;--muted:#b7c3e0;
+      --accent:#7aa2ff;--ok:#28c76f;--bad:#ff6b6b;--border:#2a3558;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#0b1020 0%,#101936 100%);color:var(--text);line-height:1.5}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    .hero{background:linear-gradient(135deg,rgba(122,162,255,.18),rgba(40,199,111,.12));border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    h1,h2,h3{margin:0 0 10px}
+    .subtitle{color:var(--muted);margin-bottom:16px}
+    .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:16px}
+    .meta .chip{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:12px 14px;color:var(--muted)}
+    .toolbar{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}
+    button{border:none;cursor:pointer;border-radius:12px;padding:12px 16px;font-weight:700;transition:transform .08s ease,opacity .2s ease}
+    button:hover{transform:translateY(-1px)}
+    .primary{background:var(--accent);color:#081225}.secondary{background:#243354;color:var(--text);border:1px solid var(--border)}
+    .danger{background:#4f2330;color:#ffd4d4;border:1px solid #6f3144}.success{background:#173a2a;color:#d8ffeb;border:1px solid #24563d}
+    .sticky{position:sticky;top:0;z-index:10;background:rgba(11,16,32,.92);backdrop-filter:blur(10px);padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:10px}
+    .scoreboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+    .score-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}
+    .score-card .label{color:var(--muted);font-size:13px}.score-card .value{font-size:28px;font-weight:800;margin-top:4px}
+    .exam{display:grid;gap:16px}
+    .question{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+    .question.correct{border-color:rgba(40,199,111,.55)}.question.incorrect{border-color:rgba(255,107,107,.6)}
+    .q-header{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:10px}
+    .q-number{font-weight:800;font-size:18px}.badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);white-space:nowrap;background:var(--card-2)}
+    .options{display:grid;gap:10px;margin-top:14px}
+    label.option{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.02);cursor:pointer}
+    label.option:hover{background:rgba(255,255,255,.04)}
+    input[type="radio"]{margin-top:3px;transform:scale(1.15)}
+    .explanation{margin-top:14px;padding:12px 14px;border-radius:14px;display:none;background:#0f1730;border:1px solid var(--border);color:var(--muted)}
+    .question.reviewed .explanation{display:block}
+    .correct-answer{margin-top:8px;color:#d7ffe7;font-weight:700}.status{margin-top:8px;font-weight:700}.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}
+    .legend{color:var(--muted);font-size:14px;margin-bottom:6px}.footer-note{margin-top:24px;color:var(--muted);font-size:14px;text-align:center}
+    .progress-wrap{width:100%;height:12px;border-radius:999px;background:#101a34;border:1px solid var(--border);overflow:hidden;margin-top:10px}.progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#5be7b2);transition:width .25s ease}
+    .small{font-size:13px;color:var(--muted)}.top-actions{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+    .pill{background:rgba(255,255,255,.04);padding:8px 12px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:13px}
+    @media (max-width:640px){.container{padding:14px}.hero{padding:18px}.question{padding:14px}.score-card .value{font-size:22px}}
+  </style>
+</head>
+<body>
+  <div class="sticky">
+    <div class="container">
+      <div class="top-actions">
+        <div><strong>Interactive exam</strong><div class="small">Course 4: Advanced RAG with Vector Databases and Retrievers</div></div>
+        <div class="pill" id="answeredPill">Answered: 0 / 25</div>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+  </div>
+  <div class="container">
+    <section class="hero">
+      <h1>Multiple-choice exam</h1>
+      <p class="subtitle">
+        Based on the course topics: advanced retrievers in LangChain and LlamaIndex, plus FAISS,
+        HNSW, comparison with ChromaDB, and building a complete RAG application.
+      </p>
+      <div class="meta">
+        <div class="chip"><strong>Questions:</strong> 25</div>
+        <div class="chip"><strong>Format:</strong> Multiple choice, one correct answer</div>
+        <div class="chip"><strong>Scoring:</strong> Automatic</div>
+        <div class="chip"><strong>Use:</strong> Open this file in Chrome, Edge, or Firefox</div>
+      </div>
+      <div class="toolbar">
+        <button class="primary" onclick="gradeExam()">Grade exam</button>
+        <button class="secondary" onclick="scrollToTopFast()">Go to top</button>
+        <button class="secondary" onclick="showOnlyUnanswered()">Show unanswered</button>
+        <button class="danger" onclick="resetExam()">Reset</button>
+      </div>
+      <div class="legend">
+        Suggestion: try solving it before checking feedback. Once you grade it, you will see your score, the correct answer, and a short explanation.
+      </div>
+    </section>
+
+    <section class="scoreboard">
+      <div class="score-card"><div class="label">Score</div><div class="value" id="scoreValue">0 / 25</div></div>
+      <div class="score-card"><div class="label">Percentage</div><div class="value" id="percentValue">0%</div></div>
+      <div class="score-card"><div class="label">Correct</div><div class="value" id="correctValue">0</div></div>
+      <div class="score-card"><div class="label">Incorrect / blank</div><div class="value" id="incorrectValue">25</div></div>
+    </section>
+
+    <section class="exam" id="exam"></section>
+
+    <div class="toolbar">
+      <button class="primary" onclick="gradeExam()">Grade exam</button>
+      <button class="success" onclick="exportResults()">Export results as text</button>
+      <button class="danger" onclick="resetExam()">Reset</button>
+    </div>
+
+    <p class="footer-note">
+      Single-file HTML. You can edit questions, options, and answers directly in the <code>questions</code> array.
+    </p>
+  </div>
+
+  <script>
+    const questions = [
+      {module:"Module 1",question:"What is the main purpose of using advanced retrievers in a RAG system?",options:["To reduce the size of the base model and save memory","To improve retrieval of relevant context so the final answer is more useful","To eliminate the need for embeddings","To completely replace vector databases"],answer:1,explanation:"Advanced retrievers aim to improve the relevance of retrieved context, which usually improves the quality of the LLM’s answers."},
+      {module:"Module 1",question:"Which retriever generates multiple variations of the same query to broaden retrieval?",options:["Parent Document Retriever","Self-Query Retriever","Multi-Query Retriever","BM25 Retriever"],answer:2,explanation:"The Multi-Query Retriever creates several reformulations of the original question to capture relevant documents from different semantic angles."},
+      {module:"Module 1",question:"What best distinguishes the Self-Query Retriever?",options:["It retrieves only documents without metadata","It uses the LLM to convert user intent into a structured search, including filters","It sorts results alphabetically","It does not need a vector store"],answer:1,explanation:"The Self-Query Retriever uses an LLM to interpret the question and generate structured constraints, often including metadata filters."},
+      {module:"Module 1",question:"What is the main purpose of a Parent Document Retriever?",options:["To store images inside the index","To retrieve small chunks and then return the larger parent context","To compress embeddings automatically","To replace chunking with full documents only"],answer:1,explanation:"A Parent Document Retriever often searches over small chunks but returns the larger parent segment so the answer has better context."},
+      {module:"Module 1",question:"What is an advantage of searching with small chunks and answering with parent documents?",options:["Lower precision but higher speed","Better search precision and better answer context","It avoids metadata completely","It removes the need for dense embeddings"],answer:1,explanation:"Small chunks can improve retrieval granularity, while returning the parent document preserves broader context for generation."},
+      {module:"Module 1",question:"In LangChain, a retriever backed by a vector store usually relies on:",options:["Regular expression search only","A traditional relational database without embeddings","Embeddings and vector similarity over an index","A computer vision model"],answer:2,explanation:"Vector-store-backed retrievers compare embeddings through similarity search over an index."},
+      {module:"Module 1",question:"Why use LlamaIndex in addition to LangChain in a course about advanced retrievers?",options:["Because LlamaIndex is only for front-end development","Because it provides abstractions focused on indexing and retrieval over data","Because it completely replaces Python","Because it does not use LLMs"],answer:1,explanation:"LlamaIndex is especially focused on data ingestion, indexing, retrieval structures, and retrieval-oriented workflows."},
+      {module:"Module 1",question:"If a user query includes filters such as date, author, or category, which retriever is usually the best fit?",options:["Self-Query Retriever","Multi-Query Retriever","TimeWeighted Retriever","Simple Retriever"],answer:0,explanation:"The Self-Query Retriever is a strong fit when you need semantic search plus structured metadata filtering."},
+      {module:"Module 1",question:"What problem does the Multi-Query Retriever try to reduce?",options:["Lack of GPU availability","Dependence on a single wording of the query","Too many system prompt tokens","JavaScript syntax errors"],answer:1,explanation:"A single phrasing may miss relevant documents. Multiple reformulations can improve recall."},
+      {module:"Module 1",question:"What is the most accurate relationship between a retriever and a vector store?",options:["They are exactly the same thing","The retriever is the retrieval logic; the vector store is where embeddings are indexed and searched","The vector store generates the final answer","The retriever is only used outside of RAG"],answer:1,explanation:"The vector store manages vector data and similarity search, while the retriever defines the retrieval strategy."},
+      {module:"Module 1",question:"What is a practical benefit of the retriever labs in LangChain and LlamaIndex?",options:["Learning video editing","Experimenting with retrieval patterns and comparing behavior in realistic scenarios","Avoiding semantic search entirely","Working only with tabular data"],answer:1,explanation:"Labs help you see how different retrievers behave across retrieval use cases."},
+      {module:"Module 1",question:"In a RAG pipeline, after retrieving relevant documents, the next step is usually:",options:["Deleting the user prompt","Passing the retrieved context to the LLM to generate the answer","Converting the vector store into SQL","Disabling ranking"],answer:1,explanation:"A typical RAG flow is query -> retrieval -> build context -> generation with the LLM."},
+      {module:"Module 2",question:"Which description best fits FAISS?",options:["A framework for web interfaces","A library focused on efficient similarity search in vector spaces","A metadata standard for PDF files","A programming language for AI"],answer:1,explanation:"FAISS is widely used for vector similarity search and nearest-neighbor retrieval at scale."},
+      {module:"Module 2",question:"In the course, FAISS is compared with ChromaDB mainly to understand:",options:["Which operating system each one supports","Their strengths and applications in semantic search and RAG","Which one creates better CSS interfaces","Which one replaces LLMs"],answer:1,explanation:"The comparison helps learners understand trade-offs and use cases for vector-search solutions in RAG systems."},
+      {module:"Module 2",question:"What does the Semantic Similarity with FAISS lab demonstrate outside a full RAG setup?",options:["That FAISS is useful only if a chatbot is present","That semantic search can be valuable even without generation-augmented answers","That embeddings are unnecessary","That HNSW is a query language"],answer:1,explanation:"The lab shows FAISS can power semantic search use cases even without a full retrieval-augmented generation pipeline."},
+      {module:"Module 2",question:"What is HNSW in the context of vector search?",options:["An HTTP protocol for agents","An algorithm or structure for approximate nearest-neighbor search","A file format for embeddings","A supervised fine-tuning method"],answer:1,explanation:"HNSW stands for Hierarchical Navigable Small World and is used for approximate nearest-neighbor search."},
+      {module:"Module 2",question:"Why is HNSW often valuable in large vector indexes?",options:["Because it forces a full exhaustive scan of all vectors","Because it improves search efficiency while maintaining good approximate quality","Because it removes the need for embeddings","Because it converts text into SQL"],answer:1,explanation:"HNSW is designed to strike a balance between retrieval quality and performance at scale."},
+      {module:"Module 2",question:"In a complete RAG application like the one in the course, what role does Gradio play?",options:["It acts as the vector index","It provides the front-end interface for interacting with the system","It generates embeddings automatically without models","It replaces LangChain"],answer:1,explanation:"Gradio is typically used to create the user-facing interface for interacting with the RAG system."},
+      {module:"Module 2",question:"In the YouTube Summarizer and QA Tool lab with RAG, LangChain, and FAISS, which combination makes the most sense?",options:["Transcript or text + embeddings + vector index + retriever + LLM + UI","Only CSS + HTML + GIFs","Just a spreadsheet","Only prompts without a knowledge base"],answer:0,explanation:"That combination reflects the core components of a practical retrieval-augmented application."},
+      {module:"Module 2",question:"What advantage comes from combining FAISS with an advanced retriever in a RAG app?",options:["It can improve both search efficiency and the relevance of retrieved context","It removes the need to validate answers","It makes chunking unnecessary","It replaces the generative model"],answer:0,explanation:"FAISS supports efficient vector retrieval, while advanced retrievers improve how relevant context is selected."},
+      {module:"Module 2",question:"Which option best describes a general difference between a vector database and a traditional database?",options:["A vector database is built for semantic similarity; a traditional database is built for exact queries and structured relations","A vector database stores no data","A traditional database works only with images","There is no functional difference"],answer:0,explanation:"Vector systems specialize in similarity search, while traditional databases excel at structured, exact-match queries."},
+      {module:"Module 2",question:"If the goal is to find texts that are similar in meaning rather than by literal wording, the most important component is:",options:["Semantic embeddings","A ZIP file","A color theme for the UI","An Excel pivot table"],answer:0,explanation:"Embeddings represent meaning in vector space and enable semantic retrieval."},
+      {module:"Module 2",question:"What risk appears if RAG retrieval brings back irrelevant context?",options:["The LLM’s answer may degrade or drift off-topic","The interface always crashes","The index is automatically deleted","The question suddenly has two correct answers"],answer:0,explanation:"Poor context retrieval often leads to weaker or less reliable final answers."},
+      {module:"Modules 1 and 2",question:"Which sequence best represents a complete RAG workflow?",options:["User -> LLM -> UI -> embeddings","Documents -> chunking -> embeddings -> index/retriever -> context -> LLM -> answer","User -> CSS -> SQL -> PDF","Embeddings -> browser -> keyboard -> answer"],answer:1,explanation:"That is the most representative end-to-end pattern for a RAG pipeline."},
+      {module:"Modules 1 and 2",question:"If you wanted to improve a RAG system from this course, which choice would be most aligned with the topics covered?",options:["Test different retrievers and compare their impact on retrieval quality and answer quality","Remove the vector index and rely on improvised answers","Disable embeddings because they use space","Remove the interface so users cannot evaluate the system"],answer:0,explanation:"The course emphasizes comparing retrievers, FAISS, and full RAG application design choices."}
+    ];
+
+    const examEl = document.getElementById("exam");
+    const scoreValue = document.getElementById("scoreValue");
+    const percentValue = document.getElementById("percentValue");
+    const correctValue = document.getElementById("correctValue");
+    const incorrectValue = document.getElementById("incorrectValue");
+    const answeredPill = document.getElementById("answeredPill");
+    const progressBar = document.getElementById("progressBar");
+
+    function renderExam() {
+      examEl.innerHTML = "";
+      questions.forEach((q, index) => {
+        const wrapper = document.createElement("article");
+        wrapper.className = "question";
+        wrapper.id = `q-${index}`;
+        const optionsHtml = q.options.map((opt, i) => `
+          <label class="option">
+            <input type="radio" name="question-${index}" value="${i}" onchange="updateProgress()">
+            <span><strong>${String.fromCharCode(65+i)}.</strong> ${opt}</span>
+          </label>`).join("");
+        wrapper.innerHTML = `
+          <div class="q-header">
+            <div>
+              <div class="q-number">Question ${index + 1}</div>
+              <div>${q.question}</div>
+            </div>
+            <div class="badge">${q.module}</div>
+          </div>
+          <div class="options">${optionsHtml}</div>
+          <div class="explanation" id="exp-${index}">
+            <div class="status" id="status-${index}"></div>
+            <div class="correct-answer" id="correct-${index}"></div>
+            <div>${q.explanation}</div>
+          </div>`;
+        examEl.appendChild(wrapper);
+      });
+      updateProgress();
+    }
+
+    function getSelectedAnswer(index) {
+      const selected = document.querySelector(`input[name="question-${index}"]:checked`);
+      return selected ? Number(selected.value) : null;
+    }
+    function updateProgress() {
+      let answered = 0;
+      questions.forEach((_, index) => { if (getSelectedAnswer(index) !== null) answered++; });
+      answeredPill.textContent = `Answered: ${answered} / ${questions.length}`;
+      progressBar.style.width = `${(answered / questions.length) * 100}%`;
+    }
+    function gradeExam() {
+      let correct = 0;
+      questions.forEach((q, index) => {
+        const selected = getSelectedAnswer(index);
+        const wrapper = document.getElementById(`q-${index}`);
+        const status = document.getElementById(`status-${index}`);
+        const correctAnswer = document.getElementById(`correct-${index}`);
+        wrapper.classList.remove("correct", "incorrect");
+        wrapper.classList.add("reviewed");
+        const letter = String.fromCharCode(65 + q.answer);
+        correctAnswer.textContent = `Correct answer: ${letter}. ${q.options[q.answer]}`;
+        if (selected === q.answer) {
+          correct++;
+          wrapper.classList.add("correct");
+          status.textContent = "✔ Correct";
+          status.className = "status ok";
+        } else {
+          wrapper.classList.add("incorrect");
+          status.textContent = selected === null ? "✘ Unanswered" : "✘ Incorrect";
+          status.className = "status bad";
+        }
+      });
+      const total = questions.length;
+      const incorrect = total - correct;
+      const percent = Math.round((correct / total) * 100);
+      scoreValue.textContent = `${correct} / ${total}`;
+      percentValue.textContent = `${percent}%`;
+      correctValue.textContent = correct;
+      incorrectValue.textContent = incorrect;
+      scrollToTopFast();
+    }
+    function resetExam() {
+      if (!confirm("Are you sure you want to reset the exam?")) return;
+      document.querySelectorAll('input[type="radio"]').forEach(input => input.checked = false);
+      document.querySelectorAll('.question').forEach(q => {
+        q.classList.remove("correct", "incorrect", "reviewed");
+        q.style.display = "";
+      });
+      scoreValue.textContent = `0 / ${questions.length}`;
+      percentValue.textContent = "0%";
+      correctValue.textContent = "0";
+      incorrectValue.textContent = String(questions.length);
+      updateProgress();
+      scrollToTopFast();
+    }
+    function showOnlyUnanswered() {
+      questions.forEach((_, index) => {
+        const wrapper = document.getElementById(`q-${index}`);
+        wrapper.style.display = getSelectedAnswer(index) === null ? "" : "none";
+      });
+      window.scrollTo({ top: document.querySelector(".hero").offsetTop - 10, behavior: "smooth" });
+    }
+    function exportResults() {
+      let lines = [];
+      let correct = 0;
+      questions.forEach((q, index) => {
+        const selected = getSelectedAnswer(index);
+        const selectedText = selected === null ? "Unanswered" : `${String.fromCharCode(65 + selected)}. ${q.options[selected]}`;
+        const rightText = `${String.fromCharCode(65 + q.answer)}. ${q.options[q.answer]}`;
+        const isCorrect = selected === q.answer;
+        if (isCorrect) correct++;
+        lines.push(
+          `Question ${index + 1}: ${q.question}\n` +
+          `Module: ${q.module}\n` +
+          `Your answer: ${selectedText}\n` +
+          `Correct answer: ${rightText}\n` +
+          `Result: ${isCorrect ? "Correct" : "Incorrect"}\n`
+        );
+      });
+      const percent = Math.round((correct / questions.length) * 100);
+      const summary = `FINAL RESULT\nScore: ${correct}/${questions.length}\nPercentage: ${percent}%\n\n`;
+      const text = summary + lines.join("\n-------------------------\n");
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "advanced_rag_exam_english_results.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    function scrollToTopFast() { window.scrollTo({ top: 0, behavior: "smooth" }); }
+    renderExam();
+  </script>
+</body>
+</html>

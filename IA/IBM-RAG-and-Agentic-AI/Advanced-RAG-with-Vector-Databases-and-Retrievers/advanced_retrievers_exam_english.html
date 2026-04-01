@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Exam - RAG Retrievers</title>
+  <style>
+    :root{--bg:#0a1020;--card:#121a30;--card2:#172241;--text:#eef4ff;--muted:#b9c7e6;--accent:#7aa2ff;--ok:#29c36a;--bad:#ff6d6d;--border:#2b3760}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#0a1020 0%,#0f1a35 100%);color:var(--text);line-height:1.5}
+    .container{max-width:1120px;margin:0 auto;padding:24px}.sticky{position:sticky;top:0;z-index:10;background:rgba(10,16,32,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08);padding:14px 0}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.pill{border:1px solid var(--border);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:13px;background:rgba(255,255,255,.04)}
+    .progress-wrap{margin-top:10px;height:12px;width:100%;border-radius:999px;overflow:hidden;border:1px solid var(--border);background:#0f1730}.progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#65e0b5);transition:width .25s ease}
+    .hero{margin-top:18px;border:1px solid var(--border);border-radius:22px;padding:24px;background:linear-gradient(135deg,rgba(122,162,255,.15),rgba(41,195,106,.08));box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    h1,h2,h3{margin:0 0 10px}.subtitle{color:var(--muted);margin-bottom:16px}.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0}
+    .meta .item{border:1px solid var(--border);background:rgba(255,255,255,.04);border-radius:16px;padding:12px 14px;color:var(--muted)}
+    .toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px} button{border:none;cursor:pointer;border-radius:12px;padding:12px 16px;font-weight:700;transition:transform .08s ease,opacity .2s ease}
+    button:hover{transform:translateY(-1px)} .primary{background:var(--accent);color:#091226}.secondary{background:#233555;color:var(--text);border:1px solid var(--border)}.success{background:#173828;color:#dbffe8;border:1px solid #28533d}.danger{background:#502431;color:#ffd9d9;border:1px solid #6a3444}
+    .scoreboard{margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}.score-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}
+    .score-card .label{color:var(--muted);font-size:13px}.score-card .value{margin-top:4px;font-size:28px;font-weight:800}.exam{margin-top:18px;display:grid;gap:16px}
+    .question{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.18)} .question.correct{border-color:rgba(41,195,106,.55)} .question.incorrect{border-color:rgba(255,109,109,.55)}
+    .q-header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:10px}.q-number{font-size:18px;font-weight:800;margin-bottom:6px}.badge{border:1px solid var(--border);border-radius:999px;padding:6px 10px;white-space:nowrap;font-size:12px;color:var(--muted);background:var(--card2)}
+    .options{display:grid;gap:10px;margin-top:14px}.option{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--border);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.02);cursor:pointer}.option:hover{background:rgba(255,255,255,.04)}
+    input[type="radio"]{margin-top:3px;transform:scale(1.15)} .explanation{display:none;margin-top:14px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;background:#0d1730;color:var(--muted)}
+    .question.reviewed .explanation{display:block}.status{font-weight:700;margin-bottom:8px}.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}.correct-answer{color:#d9ffea;font-weight:700;margin-bottom:8px}
+    .footer-note{color:var(--muted);font-size:14px;text-align:center;margin:26px 0 10px} code{background:#0f1730;padding:2px 6px;border-radius:6px;border:1px solid var(--border);color:#dbe6ff}
+    @media (max-width:640px){.container{padding:14px}.hero{padding:18px}.question{padding:14px}.score-card .value{font-size:22px}}
+  </style>
+</head>
+<body>
+  <div class="sticky"><div class="container"><div class="topbar"><div><strong>Advanced retriever exam</strong><div style="color:var(--muted);font-size:13px;">Focus: retriever types, correct usage, trade-offs, and retrieval patterns</div></div><div class="pill" id="answeredPill">Answered: 0 / 28</div></div><div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div></div></div>
+  <div class="container">
+    <section class="hero">
+      <h1>Advanced retriever simulation for RAG</h1>
+      <p class="subtitle">This version is more demanding than the previous one. It is mainly designed to identify <strong>which retriever fits best</strong>, understand its limitations, and distinguish scenarios where retrieval quality improves or degrades.</p>
+      <div class="meta">
+        <div class="item"><strong>Questions:</strong> 28</div>
+        <div class="item"><strong>Level:</strong> Intermediate – advanced</div>
+        <div class="item"><strong>Format:</strong> Multiple choice, one correct answer</div>
+        <div class="item"><strong>Scoring:</strong> Automatic with explanations</div>
+      </div>
+      <div class="toolbar">
+        <button class="primary" onclick="gradeExam()">Grade exam</button>
+        <button class="secondary" onclick="showOnlyUnanswered()">Show unanswered</button>
+        <button class="secondary" onclick="scrollToTopFast()">Go to top</button>
+        <button class="danger" onclick="resetExam()">Reset</button>
+      </div>
+    </section>
+    <section class="scoreboard">
+      <div class="score-card"><div class="label">Score</div><div class="value" id="scoreValue">0 / 28</div></div>
+      <div class="score-card"><div class="label">Percentage</div><div class="value" id="percentValue">0%</div></div>
+      <div class="score-card"><div class="label">Correct</div><div class="value" id="correctValue">0</div></div>
+      <div class="score-card"><div class="label">Incorrect / blank</div><div class="value" id="incorrectValue">28</div></div>
+    </section>
+    <section class="exam" id="exam"></section>
+    <div class="toolbar">
+      <button class="primary" onclick="gradeExam()">Grade exam</button>
+      <button class="success" onclick="exportResults()">Export results</button>
+      <button class="danger" onclick="resetExam()">Reset</button>
+    </div>
+    <p class="footer-note">You can edit the <code>questions</code> array to add more questions or change answers.</p>
+  </div>
+  <script>
+    const questions = [
+      {tag:"Self-Query",question:"You have a collection with fields like <code>author</code>, <code>date</code>, <code>topic</code>, and <code>level</code>. The user asks: “Show me beginner-friendly documents about embeddings from 2025.” Which retriever is the best fit?",options:["Multi-Query Retriever","Self-Query Retriever","Parent Document Retriever","Simple Similarity Retriever"],answer:1,explanation:"The Self-Query Retriever is the best fit when the question must be translated into semantic search plus structured metadata filters."},
+      {tag:"Multi-Query",question:"In which scenario does a Multi-Query Retriever usually add the most value?",options:["When the user query is already very long and exhaustive","When there is a risk that a single wording of the query will miss important semantic variants","When there are no embeddings in the system","When only exact keyword matching is required"],answer:1,explanation:"This retriever improves recall by generating multiple reformulations of the same question."},
+      {tag:"Parent Document",question:"What is the most important trade-off of a Parent Document Retriever?",options:["It improves local precision, but may return larger context and consume more tokens","It reduces tokens but completely destroys recall","It does not use embeddings, so it loses semantics","It works only with images"],answer:0,explanation:"It often retrieves small chunks first, then returns a larger parent block, which improves context but can increase token usage."},
+      {tag:"Contextual Compression",question:"What problem is a Contextual Compression Retriever mainly trying to solve?",options:["Lack of internet access in the browser","Too much irrelevant or redundant context being passed to the LLM","Converting embeddings to SQL","The lack of a graphical interface"],answer:1,explanation:"Contextual compression filters or summarizes retrieved material so only the most useful information is sent to the model."},
+      {tag:"Threshold",question:"When does it make sense to use a retriever with a <code>similarity score threshold</code>?",options:["When you want the system to answer no matter what, even with weak evidence","When you want to discard weak matches and avoid semantically distant context","When there is no vector index","When you want to return the entire corpus"],answer:1,explanation:"A threshold helps prevent low-similarity results from reaching the LLM."},
+      {tag:"Ensemble",question:"If your corpus contains texts where some questions are best handled by semantic similarity and others by exact lexical matching, which strategy is often strongest?",options:["Use only a larger LLM","Use an Ensemble Retriever that combines dense and sparse or lexical retrieval","Remove the vector store","Use only a Parent Document Retriever"],answer:1,explanation:"An ensemble can combine complementary strengths: semantic meaning and exact token matching."},
+      {tag:"BM25 vs Dense",question:"Which of the following queries would probably benefit more from a lexical component like BM25 than from a purely semantic retriever?",options:["Explain the idea of hybrid retrieval","Find the exact error string “ERR_CONNECTION_RESET” in the documents","Summarize the main ideas behind RAG","Find content related to contextual understanding"],answer:1,explanation:"Exact strings, error codes, and highly specific identifiers often benefit from lexical matching."},
+      {tag:"Multi-Query Risk",question:"What is a real risk of using a Multi-Query Retriever without enough control?",options:["It automatically shrinks the index","It may introduce overly broad reformulations and increase retrieval noise","It stops using embeddings","It turns documents into images"],answer:1,explanation:"More queries can improve recall, but they can also pull in less relevant results if reformulations become too broad."},
+      {tag:"Parent vs Compression",question:"Which combination makes the most sense when you want strong retrieval precision and also want to reduce tokens before sending context to the LLM?",options:["Parent Document Retriever + Contextual Compression","Only Multi-Query Retriever","Only Self-Query Retriever","A simple retriever without ranking"],answer:0,explanation:"You can retrieve with good granularity and then compress what is finally sent to the model."},
+      {tag:"Self-Query Limitation",question:"What is an important limitation of the Self-Query Retriever?",options:["It cannot work with metadata","It depends on a well-defined metadata schema that the LLM can interpret correctly","It does not work with text","It only operates on CSV files"],answer:1,explanation:"If metadata is poorly designed or ambiguous, the generated filters can be weak or incorrect."},
+      {tag:"Diversity",question:"You want to reduce redundancy among results that are very similar to each other. Which approach helps the most?",options:["MMR or another strategy that balances relevance and diversity","Set chunk size to zero","Remove the retriever","Pass the entire corpus into the prompt"],answer:0,explanation:"MMR is commonly used to avoid returning highly redundant results while preserving usefulness."},
+      {tag:"Query Type",question:"User question: “Show me recent review papers about RAG in medicine published after 2024.” Which option best describes the retrieval problem?",options:["Pure semantic similarity only","Semantic intent plus structured filtering","An ideal case for exact match only","No retriever is needed"],answer:1,explanation:"The query contains both semantic intent and structured restrictions such as date and document type."},
+      {tag:"Failure Mode",question:"Which symptom suggests that your retriever has good recall but poor precision?",options:["It returns very few results, most of them correct","It retrieves many documents, but several do not actually help answer the question","It cannot index vectors","The browser takes too long to open the HTML file"],answer:1,explanation:"Good recall with poor precision means you retrieve a lot, but with too much irrelevant noise."},
+      {tag:"Retriever Choice",question:"You have very long technical documents. A user question often targets a specific detail, but you still need enough surrounding section context to answer well. Which retriever stands out?",options:["Parent Document Retriever","Pure BM25","Threshold-only Retriever","KeywordTable Retriever"],answer:0,explanation:"It lets you find the detail at a fine-grained chunk level while still returning broader context."},
+      {tag:"Compression Risk",question:"What is one risk of overly aggressive contextual compression?",options:["It may remove information that is necessary to answer correctly","It increases the number of tokens sent","It deletes the vector index","It changes the embedding dimension"],answer:0,explanation:"If compression is too aggressive, essential details can disappear and the final answer can degrade."},
+      {tag:"Hybrid Retrieval",question:"Which option best describes hybrid retrieval?",options:["Using only an LLM and nothing else","Combining multiple retrieval signals, for example dense and lexical retrieval","Searching Google first and then Excel","Retrieving only images and audio"],answer:1,explanation:"Hybrid retrieval combines different mechanisms to take advantage of complementary strengths."},
+      {tag:"Reranking",question:"After retrieving 20 candidates, you apply a reranker and finally pass 5 to the LLM. What is the main goal of reranking?",options:["To make embeddings smaller","To refine the relevance order before building the final context","To remove the need for chunking","To replace metadata"],answer:1,explanation:"Reranking improves the order of candidates so the most useful ones are retained for the final prompt context."},
+      {tag:"When Not to Use",question:"When might a Multi-Query Retriever be unnecessary?",options:["When the query is already very precise and the domain uses stable, specific terminology","When semantic embeddings exist","When the corpus contains text","When the user asks questions"],answer:0,explanation:"If the query is already precise and the domain has limited semantic variation, extra reformulations may add little value."},
+      {tag:"Metadata Design",question:"What most improves the performance of a Self-Query Retriever?",options:["Clear, consistent metadata with semantically useful values","Hiding field names","Removing date and author from the schema","Using a different schema in every document"],answer:0,explanation:"Metadata quality is critical for generating accurate filters."},
+      {tag:"Dense Retrieval",question:"What is the main advantage of dense retrievers over purely lexical search?",options:["They capture semantic similarity even without exact wording overlap","They do not require models","They are always cheaper computationally","They work without an index"],answer:0,explanation:"Dense retrieval is valuable because it captures meaning rather than only exact text matches."},
+      {tag:"Lexical Retrieval",question:"What is a typical strength of sparse or lexical retrievers?",options:["Better detection of exact strings, codes, proper nouns, or rare terms","Deep metaphor understanding without embeddings","Returning parent documents automatically","Applying complex semantic filters without a schema"],answer:0,explanation:"Lexical retrieval is usually stronger on exact tokens, identifiers, and literal matches."},
+      {tag:"Pipeline Design",question:"Which sequence is most reasonable in a demanding retrieval pipeline?",options:["Query -> broad retrieval -> reranking/compression -> final context -> LLM","Query -> LLM -> retrieval -> embeddings","Query -> final answer -> index","Query -> delete metadata -> answer"],answer:0,explanation:"A robust retrieval system often broadens candidates first and then refines them before generation."},
+      {tag:"Evaluation",question:"If you want to evaluate retriever types, which approach is the strongest?",options:["Compare them on test questions and inspect retrieved context relevance, not only final answers","Choose the one that sounds most advanced","Measure only the interface color","Always use the most complex one"],answer:0,explanation:"Evaluation should examine retrieval quality as well as generation quality."},
+      {tag:"Chunk Granularity",question:"What effect can chunking that is too large have on retrieval?",options:["It can reduce precision because each chunk blends too much information","It always improves accuracy","It makes embeddings unnecessary","It turns dense retrieval into BM25"],answer:0,explanation:"Very large chunks can become semantically diffuse and harder to retrieve precisely."},
+      {tag:"Chunk Granularity",question:"And what risk comes from chunking that is too small?",options:["You may lose enough context to answer well, even if local matching is good","It completely destroys recall","It prevents the use of metadata","It makes indexing impossible"],answer:0,explanation:"Very small chunks can improve localization but may leave the LLM without enough context to answer accurately."},
+      {tag:"Retriever Strategy",question:"You have many ambiguous questions from novice users and a large corpus with many synonyms. Which combination sounds most reasonable?",options:["Multi-Query Retriever + reranking or MMR","Only exact keyword matching","Disable embeddings","Use only a strict threshold from the beginning"],answer:0,explanation:"Ambiguous queries often benefit from expansion or reformulation, followed by refinement of the ranking."},
+      {tag:"Hallucination Control",question:"How can a more precise retriever help reduce hallucinations in RAG?",options:["By providing context that is better aligned with the question, reducing the need for the model to improvise","By turning the LLM off","By removing the system prompt","By converting every document into images"],answer:0,explanation:"Better retrieval usually means stronger evidence, which reduces unsupported generation."},
+      {tag:"Advanced Judgment",question:"Which statement is the most accurate?",options:["There is no single best retriever; it depends on query type, corpus, and system goals","Self-Query always outperforms all others","Parent Document makes reranking unnecessary","Multi-Query fully replaces metadata filtering"],answer:0,explanation:"Retriever choice is context-dependent and should be guided by data, query style, and evaluation goals."}
+    ];
+
+    const examEl = document.getElementById("exam");
+    const scoreValue = document.getElementById("scoreValue");
+    const percentValue = document.getElementById("percentValue");
+    const correctValue = document.getElementById("correctValue");
+    const incorrectValue = document.getElementById("incorrectValue");
+    const answeredPill = document.getElementById("answeredPill");
+    const progressBar = document.getElementById("progressBar");
+
+    function renderExam() {
+      examEl.innerHTML = "";
+      questions.forEach((q, index) => {
+        const wrapper = document.createElement("article");
+        wrapper.className = "question";
+        wrapper.id = `q-${index}`;
+        const optionsHtml = q.options.map((opt, i) => `
+          <label class="option">
+            <input type="radio" name="question-${index}" value="${i}" onchange="updateProgress()">
+            <span><strong>${String.fromCharCode(65+i)}.</strong> ${opt}</span>
+          </label>`).join("");
+        wrapper.innerHTML = `
+          <div class="q-header">
+            <div>
+              <div class="q-number">Question ${index + 1}</div>
+              <div>${q.question}</div>
+            </div>
+            <div class="badge">${q.tag}</div>
+          </div>
+          <div class="options">${optionsHtml}</div>
+          <div class="explanation" id="exp-${index}">
+            <div class="status" id="status-${index}"></div>
+            <div class="correct-answer" id="correct-${index}"></div>
+            <div>${q.explanation}</div>
+          </div>`;
+        examEl.appendChild(wrapper);
+      });
+      updateProgress();
+    }
+    function getSelectedAnswer(index) {
+      const selected = document.querySelector(`input[name="question-${index}"]:checked`);
+      return selected ? Number(selected.value) : null;
+    }
+    function updateProgress() {
+      let answered = 0;
+      questions.forEach((_, index) => { if (getSelectedAnswer(index) !== null) answered++; });
+      answeredPill.textContent = `Answered: ${answered} / ${questions.length}`;
+      progressBar.style.width = `${(answered / questions.length) * 100}%`;
+    }
+    function gradeExam() {
+      let correct = 0;
+      questions.forEach((q, index) => {
+        const selected = getSelectedAnswer(index);
+        const wrapper = document.getElementById(`q-${index}`);
+        const status = document.getElementById(`status-${index}`);
+        const correctAnswer = document.getElementById(`correct-${index}`);
+        wrapper.classList.remove("correct", "incorrect");
+        wrapper.classList.add("reviewed");
+        const letter = String.fromCharCode(65 + q.answer);
+        correctAnswer.textContent = `Correct answer: ${letter}. ${q.options[q.answer].replace(/<[^>]+>/g, "")}`;
+        if (selected === q.answer) {
+          correct++;
+          wrapper.classList.add("correct");
+          status.textContent = "✔ Correct";
+          status.className = "status ok";
+        } else {
+          wrapper.classList.add("incorrect");
+          status.textContent = selected === null ? "✘ Unanswered" : "✘ Incorrect";
+          status.className = "status bad";
+        }
+      });
+      const total = questions.length;
+      const incorrect = total - correct;
+      const percent = Math.round((correct / total) * 100);
+      scoreValue.textContent = `${correct} / ${total}`;
+      percentValue.textContent = `${percent}%`;
+      correctValue.textContent = correct;
+      incorrectValue.textContent = incorrect;
+      scrollToTopFast();
+    }
+    function resetExam() {
+      if (!confirm("Are you sure you want to reset the exam?")) return;
+      document.querySelectorAll('input[type="radio"]').forEach(input => input.checked = false);
+      document.querySelectorAll('.question').forEach(q => {
+        q.classList.remove("correct", "incorrect", "reviewed");
+        q.style.display = "";
+      });
+      scoreValue.textContent = `0 / ${questions.length}`;
+      percentValue.textContent = "0%";
+      correctValue.textContent = "0";
+      incorrectValue.textContent = String(questions.length);
+      updateProgress();
+      scrollToTopFast();
+    }
+    function showOnlyUnanswered() {
+      questions.forEach((_, index) => {
+        const wrapper = document.getElementById(`q-${index}`);
+        wrapper.style.display = getSelectedAnswer(index) === null ? "" : "none";
+      });
+      window.scrollTo({ top: document.querySelector(".hero").offsetTop - 10, behavior: "smooth" });
+    }
+    function exportResults() {
+      let lines = [];
+      let correct = 0;
+      questions.forEach((q, index) => {
+        const selected = getSelectedAnswer(index);
+        const selectedText = selected === null ? "Unanswered" : `${String.fromCharCode(65 + selected)}. ${q.options[selected].replace(/<[^>]+>/g, "")}`;
+        const rightText = `${String.fromCharCode(65 + q.answer)}. ${q.options[q.answer].replace(/<[^>]+>/g, "")}`;
+        const isCorrect = selected === q.answer;
+        if (isCorrect) correct++;
+        lines.push(
+          `Question ${index + 1}: ${q.question.replace(/<[^>]+>/g, "")}\n` +
+          `Topic: ${q.tag}\n` +
+          `Your answer: ${selectedText}\n` +
+          `Correct answer: ${rightText}\n` +
+          `Result: ${isCorrect ? "Correct" : "Incorrect"}\n`
+        );
+      });
+      const percent = Math.round((correct / questions.length) * 100);
+      const summary = `FINAL RESULT\nScore: ${correct}/${questions.length}\nPercentage: ${percent}%\n\n`;
+      const text = summary + lines.join("\n-------------------------\n");
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "advanced_retrievers_exam_english_results.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    function scrollToTopFast() { window.scrollTo({ top: 0, behavior: "smooth" }); }
+    renderExam();
+  </script>
+</body>
+</html>
