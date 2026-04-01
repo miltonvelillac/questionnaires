@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Questionnaires | GitHub Pages</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --panel: #fffaf2;
+      --panel-strong: #f1e5d1;
+      --text: #1f1c16;
+      --muted: #5f5649;
+      --border: #d6c8b4;
+      --accent: #0e6ba8;
+      --accent-strong: #084f7d;
+      --shadow: rgba(31, 28, 22, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(14, 107, 168, 0.14), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(182, 121, 32, 0.18), transparent 30%),
+        linear-gradient(180deg, #efe6d7 0%, var(--bg) 100%);
+    }
+
+    main {
+      width: min(960px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 56px;
+    }
+
+    .hero {
+      padding: 32px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: rgba(255, 250, 242, 0.92);
+      box-shadow: 0 20px 40px var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--panel-strong);
+      color: var(--accent-strong);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      max-width: 720px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      margin-top: 28px;
+    }
+
+    .card {
+      display: block;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--panel);
+      color: inherit;
+      text-decoration: none;
+      box-shadow: 0 12px 28px rgba(31, 28, 22, 0.08);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+
+    .card:hover,
+    .card:focus-visible {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 16px 34px rgba(14, 107, 168, 0.16);
+      outline: none;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .card p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .path {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      color: var(--accent-strong);
+      word-break: break-all;
+    }
+
+    .footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: min(100% - 20px, 960px);
+        padding: 24px 0 36px;
+      }
+
+      .hero {
+        padding: 22px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      .card h2 {
+        font-size: 21px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="eyebrow">GitHub Pages</div>
+      <h1>Questionnaires publicados en la web</h1>
+      <p class="subtitle">
+        Esta portada sirve como punto de entrada para abrir cada examen HTML desde GitHub Pages
+        sin necesidad de descargar archivos localmente.
+      </p>
+
+      <div class="grid">
+        <a class="card" href="IA/IBM-RAG-and-Agentic-AI/Advanced-RAG-with-Vector-Databases-and-Retrievers/advanced_rag_exam_english.html">
+          <h2>Advanced RAG Exam</h2>
+          <p>Examen interactivo sobre RAG avanzado con bases vectoriales y retrievers.</p>
+          <div class="path">IA/IBM-RAG-and-Agentic-AI/Advanced-RAG-with-Vector-Databases-and-Retrievers/advanced_rag_exam_english.html</div>
+        </a>
+
+        <a class="card" href="IA/IBM-RAG-and-Agentic-AI/Advanced-RAG-with-Vector-Databases-and-Retrievers/advanced_retrievers_exam_english.html">
+          <h2>Advanced Retrievers Exam</h2>
+          <p>Examen interactivo centrado en tipos de retrievers, trade-offs y patrones de recuperación.</p>
+          <div class="path">IA/IBM-RAG-and-Agentic-AI/Advanced-RAG-with-Vector-Databases-and-Retrievers/advanced_retrievers_exam_english.html</div>
+        </a>
+      </div>
+
+      <p class="footer">
+        Cuando el workflow termine, esta página quedará disponible en la URL pública de GitHub Pages del repositorio.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
